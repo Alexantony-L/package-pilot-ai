@@ -38,7 +38,7 @@ export default function Results() {
     
     try {
       console.log('Starting AI-powered search with params:', {searchParams});
-         const response = await fetch("https://tour-package-tracker-qad2kop0d-alexs-projects-33383354.vercel.app/api/travel-guide", {
+         const response = await fetch("https://tour-package-tracker.vercel.app/api/travel-guide", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
