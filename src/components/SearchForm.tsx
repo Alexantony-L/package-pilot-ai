@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, DollarSign, Users, Calendar } from "lucide-react";
+import { MapPin, DollarSign, Users, Calendar, Sparkles } from "lucide-react";
 
 interface SearchFormProps {
   onSearch: (searchData: any) => void;
@@ -175,6 +175,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
             className="w-full"
             disabled={!destination || !currentLocation || !budget}
           >
+            <Sparkles className="w-5 h-5 mr-2" />
             Find AI-Verified Travel Packages
           </Button>
         </form>

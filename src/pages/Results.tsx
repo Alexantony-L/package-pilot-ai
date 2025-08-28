@@ -1,105 +1,21 @@
 import { useState, useEffect } from "react";
 import { PackageCard } from "@/components/PackageCard";
+import { LoadingState } from "@/components/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Filter, MapPin, Users, Calendar, Sparkles } from "lucide-react";
+import { ArrowLeft, Filter, MapPin, Users, Calendar, Sparkles, AlertCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-// Mock data for demonstration
-const mockPackages = [
-  {
-    id: "1",
-    title: "Magical Ooty Hill Station Experience with Tea Gardens",
-    destination: "Ooty, Tamil Nadu",
-    duration: "4 Days / 3 Nights",
-    price: 15999,
-    originalPrice: 19999,
-    agency: {
-      name: "Himalayan Adventures",
-      location: "Bangalore, Karnataka",
-      rating: 4.8,
-      verified: true,
-      verificationLevel: "premium" as const,
-    },
-    inclusions: {
-      food: true,
-      accommodation: "Resort",
-      transport: true,
-      sightseeing: true,
-    },
-    highlights: [
-      "Stay in premium hill resort with valley views",
-      "Visit famous tea gardens and chocolate factory",
-      "Nilgiri Mountain Railway joy ride",
-      "Ooty Lake boating and local sightseeing",
-    ],
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bookingUrl: "https://example.com/book/1",
-  },
-  {
-    id: "2",
-    title: "Complete Ooty Package with Coonoor & Kotagiri",
-    destination: "Ooty, Tamil Nadu",
-    duration: "5 Days / 4 Nights",
-    price: 22500,
-    originalPrice: 28000,
-    agency: {
-      name: "South India Tours",
-      location: "Chennai, Tamil Nadu",
-      rating: 4.6,
-      verified: true,
-      verificationLevel: "verified" as const,
-    },
-    inclusions: {
-      food: true,
-      accommodation: "Hotel",
-      transport: true,
-      sightseeing: true,
-    },
-    highlights: [
-      "Cover Ooty, Coonoor, and Kotagiri hill stations",
-      "Visit Doddabetta Peak - highest point in Nilgiris",
-      "Sim's Park and Botanical Gardens tour",
-      "Local tribal village experience",
-    ],
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bookingUrl: "https://example.com/book/2",
-  },
-  {
-    id: "3",
-    title: "Budget-Friendly Ooty Getaway for Families",
-    destination: "Ooty, Tamil Nadu",
-    duration: "3 Days / 2 Nights",
-    price: 9999,
-    agency: {
-      name: "Family Travel Co.",
-      location: "Coimbatore, Tamil Nadu",
-      rating: 4.3,
-      verified: true,
-      verificationLevel: "basic" as const,
-    },
-    inclusions: {
-      food: false,
-      accommodation: "Guesthouse",
-      transport: true,
-      sightseeing: true,
-    },
-    highlights: [
-      "Budget-friendly family accommodation",
-      "All major sightseeing spots covered",
-      "Flexible meal arrangements",
-      "Child-friendly activities included",
-    ],
-    image: "https://images.unsplash.com/photo-1587899897387-091795e5c39c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bookingUrl: "https://example.com/book/3",
-  },
-];
+import { TravelSearchService, type ScrapedPackage } from "@/services/TravelSearchService";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [packages] = useState(mockPackages);
+  const { toast } = useToast();
+  const [packages, setPackages] = useState<ScrapedPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("recommended");
   const [filterBy, setFilterBy] = useState("all");
   const searchParams = location.state || {};
@@ -107,10 +23,50 @@ export default function Results() {
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
+    
+    // Start the search when component mounts
+    if (searchParams.destination) {
+      performSearch();
+    } else {
+      // If no search params, redirect to home
+      navigate("/");
+    }
   }, []);
 
-  const handleBackToSearch = () => {
-    navigate("/");
+  const performSearch = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Starting AI-powered search with params:', searchParams);
+      
+      const results = await TravelSearchService.searchTravelPackages(searchParams);
+      
+      if (results.length === 0) {
+        setError("No packages found for your search criteria. Please try different parameters.");
+        toast({
+          title: "No results found",
+          description: "Try adjusting your search criteria for better results.",
+          variant: "destructive",
+        });
+      } else {
+        setPackages(results);
+        toast({
+          title: "Search Complete!",
+          description: `Found ${results.length} verified travel packages.`,
+        });
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setError("Failed to search for packages. Please try again.");
+      toast({
+        title: "Search Error",
+        description: "Something went wrong. Please try searching again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getSortedPackages = () => {
@@ -127,7 +83,11 @@ export default function Results() {
         sorted.sort((a, b) => b.agency.rating - a.agency.rating);
         break;
       default:
-        // Keep recommended order
+        // Keep recommended order (verification level priority)
+        sorted.sort((a, b) => {
+          const levelOrder = { premium: 3, verified: 2, basic: 1 };
+          return levelOrder[b.agency.verificationLevel] - levelOrder[a.agency.verificationLevel];
+        });
         break;
     }
     
@@ -144,6 +104,32 @@ export default function Results() {
     return sorted;
   };
 
+  // Show loading state while searching
+  if (loading) {
+    return <LoadingState />;
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Search Failed</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <div className="space-y-3">
+            <Button onClick={performSearch} variant="default" className="w-full">
+              Try Again
+            </Button>
+            <Button onClick={() => navigate("/")} variant="outline" className="w-full">
+              New Search
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const sortedPackages = getSortedPackages();
 
   return (
@@ -153,7 +139,7 @@ export default function Results() {
         <div className="container mx-auto px-4">
           <Button 
             variant="ghost" 
-            onClick={handleBackToSearch}
+            onClick={() => navigate("/")}
             className="mb-4 text-white hover:bg-white/20"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -234,12 +220,19 @@ export default function Results() {
           ))}
         </div>
 
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            Load More Packages
-          </Button>
-        </div>
+        {/* Load More - only show if we have packages */}
+        {sortedPackages.length > 0 && (
+          <div className="text-center mt-12">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={performSearch}
+              disabled={loading}
+            >
+              {loading ? "Searching..." : "Search for More Packages"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
