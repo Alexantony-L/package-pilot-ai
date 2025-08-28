@@ -37,8 +37,7 @@ export default function Results() {
     setError(null);
     
     try {
-      console.log('Starting AI-powered search with params:', {searchParams});
-         const response = await fetch("https://tour-package-tracker-igwz1or1i-alexs-projects-33383354.vercel.app/api/travel-guide", {
+         const response = await fetch("https://tour-package-tracker.vercel.app/api/travel-guide", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -53,10 +52,7 @@ if (!response.ok) {
 const results = await response.json();
 
 
-      console.log("verifiedPackages",results)
-      // return verifiedPackages;
-      // const results = await TravelSearchService.searchTravelPackages(searchParams);
-      console.log('Search results:------>', results);
+     
       setPackages(results)
       if (results.length === 0) {
         setError("No packages found for your search criteria. Please try different parameters.");
@@ -85,40 +81,7 @@ const results = await response.json();
     }
   };
 
-  // const getSortedPackages = () => {
-  //   // let sorted = [...packages];
-    
-  //   switch (sortBy) {
-  //     case "price-low":
-  //       sorted.sort((a, b) => a.price - b.price);
-  //       break;
-  //     case "price-high":
-  //       sorted.sort((a, b) => b.price - a.price);
-  //       break;
-  //     case "rating":
-  //       sorted.sort((a, b) => b.agency.rating - a.agency.rating);
-  //       break;
-  //     default:
-  //       // Keep recommended order (verification level priority)
-  //       // sorted.sort((a, b) => {
-  //       //   const levelOrder = { premium: 3, verified: 2, basic: 1 };
-  //       //   return levelOrder[b.agency.verificationLevel] - levelOrder[a.agency.verificationLevel];
-  //       // });
-  //       break;
-  //   }
-    
-  //   // if (filterBy !== "all") {
-  //   //   if (filterBy === "verified") {
-  //   //     sorted = sorted.filter(pkg => pkg.agency.verified);
-  //   //   } else if (filterBy === "budget") {
-  //   //     sorted = sorted.filter(pkg => pkg.price < 15000);
-  //   //   } else if (filterBy === "premium") {
-  //   //     sorted = sorted.filter(pkg => pkg.price > 20000);
-  //   //   }
-  //   // }
-    
-  //   return sorted;
-  // };
+
 
   // Show loading state while searching
   if (loading) {
@@ -149,10 +112,22 @@ const results = await response.json();
   // const sortedPackages = getSortedPackages();
 
   return (
+    <>
+          <div className="bg-gradient-hero text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-6 h-6 animate-pulse" />
+            <h1 className="text-3xl font-bold">AI is Finding Your Perfect Packages</h1>
+          </div>
+          <p className="text-white/90">Scanning the web for verified travel deals...</p>
+        </div>
+      </div>
+    
    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
   {packages.map((pkg, index) => (
     <PackageCard key={index} package={pkg} />
   ))}
 </div>
+</>
   );
 }
