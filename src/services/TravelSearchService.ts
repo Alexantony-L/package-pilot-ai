@@ -36,7 +36,9 @@ interface ScrapedPackage {
   bookingUrl: string;
 }
 
+import axios from 'axios';
 export class TravelSearchService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static parseWebSearchResults(searchResults: any[]): ScrapedPackage[] {
     const packages: ScrapedPackage[] = [];
     
@@ -54,7 +56,7 @@ export class TravelSearchService {
         // Determine verification level based on domain reputation
         const domain = new URL(url).hostname;
         let verificationLevel: "premium" | "verified" | "basic" = "basic";
-        let verified = true;
+        const verified = true;
         
         if (domain.includes('makemytrip') || domain.includes('yatra') || domain.includes('goibibo')) {
           verificationLevel = "premium";
@@ -189,29 +191,15 @@ export class TravelSearchService {
   
   public static async searchTravelPackages(params: SearchParams): Promise<ScrapedPackage[]> {
     try {
-      console.log('Starting AI-powered travel package search...');
-      
-      // Build search query
-      const searchQuery = `${params.destination} travel packages tour ${params.budget} ${params.duration} days from ${params.currentLocation} verified agencies`;
-      
-      // Use our web search simulation (in production, this would be a real API)
-      const { WebSearchAPI } = await import('./WebSearchAPI');
-      const searchResults = await WebSearchAPI.search(searchQuery, 8);
-      
-      // Parse and verify the results
-      const packages = this.parseWebSearchResults(searchResults.results || []);
-      
-      // Apply AI verification logic
-      const verifiedPackages = packages.map(pkg => ({
-        ...pkg,
-        agency: {
-          ...pkg.agency,
-          verified: this.verifyAgency(pkg.agency.name, pkg.bookingUrl),
-        }
-      }));
-      
-      console.log(`Found ${verifiedPackages.length} verified travel packages`);
+       console.log("params",params)
+
+      const response=await axios.post("http://10.227.209.32:6000/api/travel-guide",params);
+      const verifiedPackages=response.data;
+
+      console.log("verifiedPackages",verifiedPackages)
       return verifiedPackages;
+
+     
       
     } catch (error) {
       console.error('Error in travel search:', error);

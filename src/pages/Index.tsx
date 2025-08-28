@@ -9,8 +9,10 @@ import heroImage from "@/assets/hero-travel.jpg";
 const Index = () => {
   const navigate = useNavigate();
 
-  const handleSearch = (searchData: any) => {
+  const handleSearch = (searchData: unknown) => {
     // Navigate to results page with search data
+console.log(searchData);
+
     navigate("/results", { state: searchData });
   };
 

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, DollarSign, Users, Calendar, Sparkles } from "lucide-react";
 
 interface SearchFormProps {
-  onSearch: (searchData: any) => void;
+  onSearch: (searchData: unknown) => void;
 }
 
 export const SearchForm = ({ onSearch }: SearchFormProps) => {

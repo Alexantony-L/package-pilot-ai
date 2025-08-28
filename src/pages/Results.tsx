@@ -1,25 +1,24 @@
 import { useState, useEffect } from "react";
-import { PackageCard } from "@/components/PackageCard";
 import { LoadingState } from "@/components/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Filter, MapPin, Users, Calendar, Sparkles, AlertCircle } from "lucide-react";
+import { ArrowLeft, Filter, MapPin, Users, Calendar, Sparkles, AlertCircle ,ExternalLink, Phone, Mail, Globe} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelSearchService, type ScrapedPackage } from "@/services/TravelSearchService";
 import { useToast } from "@/components/ui/use-toast";
-
+import {PackageCard} from "./PackageCard"
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [packages, setPackages] = useState<ScrapedPackage[]>([]);
+  const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("recommended");
   const [filterBy, setFilterBy] = useState("all");
   const searchParams = location.state || {};
-
+  
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
@@ -38,10 +37,27 @@ export default function Results() {
     setError(null);
     
     try {
-      console.log('Starting AI-powered search with params:', searchParams);
-      
-      const results = await TravelSearchService.searchTravelPackages(searchParams);
-      
+      console.log('Starting AI-powered search with params:', {searchParams});
+         const response = await fetch("https://tour-package-tracker-igwz1or1i-alexs-projects-33383354.vercel.app/api/travel-guide", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(searchParams),
+});
+
+if (!response.ok) {
+  throw new Error(`HTTP error! status: ${response.status}`);
+}
+
+const results = await response.json();
+
+
+      console.log("verifiedPackages",results)
+      // return verifiedPackages;
+      // const results = await TravelSearchService.searchTravelPackages(searchParams);
+      console.log('Search results:------>', results);
+      setPackages(results)
       if (results.length === 0) {
         setError("No packages found for your search criteria. Please try different parameters.");
         toast({
@@ -69,40 +85,40 @@ export default function Results() {
     }
   };
 
-  const getSortedPackages = () => {
-    let sorted = [...packages];
+  // const getSortedPackages = () => {
+  //   // let sorted = [...packages];
     
-    switch (sortBy) {
-      case "price-low":
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case "price-high":
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      case "rating":
-        sorted.sort((a, b) => b.agency.rating - a.agency.rating);
-        break;
-      default:
-        // Keep recommended order (verification level priority)
-        sorted.sort((a, b) => {
-          const levelOrder = { premium: 3, verified: 2, basic: 1 };
-          return levelOrder[b.agency.verificationLevel] - levelOrder[a.agency.verificationLevel];
-        });
-        break;
-    }
+  //   switch (sortBy) {
+  //     case "price-low":
+  //       sorted.sort((a, b) => a.price - b.price);
+  //       break;
+  //     case "price-high":
+  //       sorted.sort((a, b) => b.price - a.price);
+  //       break;
+  //     case "rating":
+  //       sorted.sort((a, b) => b.agency.rating - a.agency.rating);
+  //       break;
+  //     default:
+  //       // Keep recommended order (verification level priority)
+  //       // sorted.sort((a, b) => {
+  //       //   const levelOrder = { premium: 3, verified: 2, basic: 1 };
+  //       //   return levelOrder[b.agency.verificationLevel] - levelOrder[a.agency.verificationLevel];
+  //       // });
+  //       break;
+  //   }
     
-    if (filterBy !== "all") {
-      if (filterBy === "verified") {
-        sorted = sorted.filter(pkg => pkg.agency.verified);
-      } else if (filterBy === "budget") {
-        sorted = sorted.filter(pkg => pkg.price < 15000);
-      } else if (filterBy === "premium") {
-        sorted = sorted.filter(pkg => pkg.price > 20000);
-      }
-    }
+  //   // if (filterBy !== "all") {
+  //   //   if (filterBy === "verified") {
+  //   //     sorted = sorted.filter(pkg => pkg.agency.verified);
+  //   //   } else if (filterBy === "budget") {
+  //   //     sorted = sorted.filter(pkg => pkg.price < 15000);
+  //   //   } else if (filterBy === "premium") {
+  //   //     sorted = sorted.filter(pkg => pkg.price > 20000);
+  //   //   }
+  //   // }
     
-    return sorted;
-  };
+  //   return sorted;
+  // };
 
   // Show loading state while searching
   if (loading) {
@@ -130,110 +146,13 @@ export default function Results() {
     );
   }
 
-  const sortedPackages = getSortedPackages();
+  // const sortedPackages = getSortedPackages();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-hero text-white py-8">
-        <div className="container mx-auto px-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")}
-            className="mb-4 text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Search
-          </Button>
-          
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-6 h-6" />
-            <h1 className="text-3xl font-bold">AI-Verified Travel Packages</h1>
-          </div>
-          
-          {searchParams.destination && (
-            <div className="flex flex-wrap items-center gap-4 text-white/90">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>To: {searchParams.destination}</span>
-              </div>
-              {searchParams.duration && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>{searchParams.duration} days</span>
-                </div>
-              )}
-              {searchParams.groupSize && (
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>{searchParams.groupSize} travelers</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Results Content */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Filters and Sort */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 items-start sm:items-center justify-between">
-          <div className="flex items-center gap-2 text-foreground">
-            <span className="font-medium">Found {sortedPackages.length} packages</span>
-            <Badge variant="secondary" className="bg-forest text-white">
-              AI Verified
-            </Badge>
-          </div>
-          
-          <div className="flex gap-3">
-            <Select value={filterBy} onValueChange={setFilterBy}>
-              <SelectTrigger className="w-[140px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Packages</SelectItem>
-                <SelectItem value="verified">AI Verified Only</SelectItem>
-                <SelectItem value="budget">Budget Friendly</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recommended">Recommended</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="rating">Highest Rated</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Packages Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedPackages.map((pkg) => (
-            <PackageCard key={pkg.id} package={pkg} />
-          ))}
-        </div>
-
-        {/* Load More - only show if we have packages */}
-        {sortedPackages.length > 0 && (
-          <div className="text-center mt-12">
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={performSearch}
-              disabled={loading}
-            >
-              {loading ? "Searching..." : "Search for More Packages"}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {packages.map((pkg, index) => (
+    <PackageCard key={index} package={pkg} />
+  ))}
+</div>
   );
 }
