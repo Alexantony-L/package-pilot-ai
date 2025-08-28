@@ -52,6 +52,21 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Travel-themed colors
+				ocean: {
+					DEFAULT: 'hsl(var(--ocean))',
+					light: 'hsl(var(--ocean-light))'
+				},
+				sunset: {
+					DEFAULT: 'hsl(var(--sunset))',
+					light: 'hsl(var(--sunset-light))'
+				},
+				forest: {
+					DEFAULT: 'hsl(var(--forest))',
+					light: 'hsl(var(--forest-light))'
+				},
+				trust: 'hsl(var(--trust))',
+				warning: 'hsl(var(--warning))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -67,6 +82,20 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-trust': 'var(--gradient-trust)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'medium': 'var(--shadow-medium)',
+				'large': 'var(--shadow-large)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)',
+				'spring': 'var(--transition-spring)'
 			},
 			keyframes: {
 				'accordion-down': {
